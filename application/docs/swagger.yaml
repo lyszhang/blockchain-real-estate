@@ -53,15 +53,15 @@ definitions:
       accountId:
         description: 操作人ID
         type: string
-      livingSpace:
-        description: 生活空间
-        type: number
+      adLink:
+        description: 广告位链接页
+        type: string
       proprietor:
         description: 所有者(业主)(业主AccountId)
         type: string
-      totalArea:
-        description: 总面积
-        type: number
+      adState:
+        description: 广告位状态
+        type: string
     type: object
   v1.SellingByBuyRequestBody:
     properties:

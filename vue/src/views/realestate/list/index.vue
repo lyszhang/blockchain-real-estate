@@ -3,11 +3,11 @@
     <el-alert
       type="success"
     >
-      <p>账户ID: {{ accountId }}</p>
-      <p>用户名: {{ userName }}</p>
-      <p>余额: ￥{{ balance }} 元</p>
-      <p>当发起出售、捐赠或质押操作后，担保状态为true</p>
-      <p>当担保状态为false时，才可发起出售、捐赠或质押操作</p>
+      <p align="left">账户ID: {{ accountId }}</p>
+      <p align="left">用户名: {{ userName }}</p>
+      <p align="left">余额: ￥{{ balance }} 元</p>
+      <p align="left">当发起出租、捐赠、使用后，担保状态为true</p>
+      <p align="left">当担保状态为false时，才可发起出租、捐赠或使用</p>
     </el-alert>
     <div v-if="realEstateList.length==0" style="text-align: center;">
       <el-alert
@@ -24,7 +24,7 @@
           </div>
 
           <div class="item">
-            <el-tag>房产ID: </el-tag>
+            <el-tag>广告位ID: </el-tag>
             <span>{{ val.realEstateId }}</span>
           </div>
           <div class="item">
@@ -32,18 +32,20 @@
             <span>{{ val.proprietor }}</span>
           </div>
           <div class="item">
-            <el-tag type="warning">总空间: </el-tag>
-            <span>{{ val.totalArea }} ㎡</span>
+            <el-tag type="warning"> 状态: </el-tag>
+            <span>{{ val.adState }} </span>
           </div>
           <div class="item">
-            <el-tag type="danger">居住空间: </el-tag>
-            <span>{{ val.livingSpace }} ㎡</span>
+            <el-tag type="danger">广告位链接: </el-tag>
+            <span>{{ val.adLink }} </span>
           </div>
 
           <div v-if="!val.encumbrance&&roles[0] !== 'admin'">
-            <el-button type="text" @click="openDialog(val)">出售</el-button>
+            <el-button type="text" @click="openDialog(val)">出租</el-button>
             <el-divider direction="vertical" />
             <el-button type="text" @click="openDonatingDialog(val)">捐赠</el-button>
+            <el-divider direction="vertical" />
+            <el-button type="text" @click="openPublishDialog(val)">发布广告</el-button>
           </div>
           <el-rate v-if="roles[0] === 'admin'" />
         </el-card>
@@ -59,8 +61,19 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="createSelling('realForm')">立即出售</el-button>
+        <el-button type="primary" @click="createSelling('realForm')">立即出租</el-button>
         <el-button @click="dialogCreateSelling = false">取 消</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreatePublishing" :close-on-click-modal="false" @close="resetForm('publishForm')">
+      <el-form ref="publishForm" :model="publishForm" label-width="100px">
+        <el-form-item label="图片" prop="picImg">
+          <el-upload v-model="publishForm.picImg" type="file" accept="image/gif,image/jpeg,image/jpg,image/png" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="createPublishing('publishForm')">立即发布</el-button>
+        <el-button @click="dialogCreatePublishing = false">取 消</el-button>
       </div>
     </el-dialog>
     <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreateDonating" :close-on-click-modal="false" @close="resetForm('DonatingForm')">
@@ -93,6 +106,7 @@ import { queryAccountList } from '@/api/account'
 import { queryRealEstateList } from '@/api/realEstate'
 import { createSelling } from '@/api/selling'
 import { createDonating } from '@/api/donating'
+import { publishOnRealEstate } from '@/api/realEstate'
 
 export default {
   name: 'RealeState',
@@ -109,6 +123,7 @@ export default {
       loadingDialog: false,
       realEstateList: [],
       dialogCreateSelling: false,
+      dialogCreatePublishing: false,
       dialogCreateDonating: false,
       realForm: {
         price: 0,
@@ -129,6 +144,9 @@ export default {
         proprietor: [
           { required: true, message: '请选择业主', trigger: 'change' }
         ]
+      },
+      publishForm: {
+        picImg: __filename
       },
       accountList: [],
       valItem: {}
@@ -168,6 +186,10 @@ export default {
       this.dialogCreateSelling = true
       this.valItem = item
     },
+    openPublishDialog(item) {
+      this.dialogCreatePublishing = true
+      this.valItem = item
+    },
     openDonatingDialog(item) {
       this.dialogCreateDonating = true
       this.valItem = item
@@ -183,7 +205,7 @@ export default {
     createSelling(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.$confirm('是否立即出售?', '提示', {
+          this.$confirm('是否立即出租?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'success'
@@ -200,12 +222,12 @@ export default {
               if (response !== null) {
                 this.$message({
                   type: 'success',
-                  message: '出售成功!'
+                  message: '出租成功!'
                 })
               } else {
                 this.$message({
                   type: 'error',
-                  message: '出售失败!'
+                  message: '出租失败!'
                 })
               }
               setTimeout(() => {
@@ -220,7 +242,54 @@ export default {
             this.dialogCreateSelling = false
             this.$message({
               type: 'info',
-              message: '已取消出售'
+              message: '已取消出租'
+            })
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    createPublishing(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$confirm('是否立即发布?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'success'
+          }).then(() => {
+            this.loadingDialog = true
+            publishOnRealEstate({
+              accountId: this.accountId,
+              objectOfSale: this.valItem.realEstateId,
+              img: this.publishForm.picImg
+            }).then(response => {
+              this.loadingDialog = false
+              this.dialogCreatePublishing = false
+              if (response !== null) {
+                this.$message({
+                  type: 'success',
+                  message: '发布成功!'
+                })
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: '发布失败!'
+                })
+              }
+              setTimeout(() => {
+                window.location.reload()
+              }, 1000)
+            }).catch(_ => {
+              this.loadingDialog = false
+              this.dialogCreatePublishing = false
+            })
+          }).catch(() => {
+            this.loadingDialog = false
+            this.dialogCreatePublishing = false
+            this.$message({
+              type: 'info',
+              message: '已取消发布'
             })
           })
         } else {

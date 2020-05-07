@@ -51,7 +51,7 @@ export const constantRoutes = [{
     name: 'Realestate',
     component: () => import('@/views/realestate/list/index'),
     meta: {
-      title: '房产信息',
+      title: '个人广告位信息',
       icon: 'realestate'
     }
   }]
@@ -70,7 +70,7 @@ export const asyncRoutes = [
     name: 'Selling',
     alwaysShow: true,
     meta: {
-      title: '销售',
+      title: '广告位租售',
       icon: 'selling'
     },
     children: [{
@@ -78,7 +78,7 @@ export const asyncRoutes = [
       name: 'SellingAll',
       component: () => import('@/views/selling/all/index'),
       meta: {
-        title: '所有销售',
+        title: '所有租售',
         icon: 'sellingAll'
       }
     },
@@ -88,7 +88,7 @@ export const asyncRoutes = [
       component: () => import('@/views/selling/me/index'),
       meta: {
         roles: ['editor'],
-        title: '我发起的',
+        title: '我的租售',
         icon: 'sellingMe'
       }
     }, {
@@ -97,7 +97,7 @@ export const asyncRoutes = [
       component: () => import('@/views/selling/buy/index'),
       meta: {
         roles: ['editor'],
-        title: '我购买的',
+        title: '我的购买',
         icon: 'sellingBuy'
       }
     }
@@ -154,7 +154,7 @@ export const asyncRoutes = [
       name: 'AddRealestate',
       component: () => import('@/views/realestate/add/index'),
       meta: {
-        title: '新增房产',
+        title: '新增广告位',
         icon: 'addRealestate'
       }
     }]

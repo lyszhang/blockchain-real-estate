@@ -17,11 +17,12 @@ type Account struct {
 //仅当Encumbrance为false时，才可发起出售、捐赠或质押
 //Proprietor和RealEstateID一起作为复合键,保证可以通过Proprietor查询到名下所有的房产信息
 type RealEstate struct {
-	RealEstateID string  `json:"realEstateId"` //房地产ID
-	Proprietor   string  `json:"proprietor"`   //所有者(业主)(业主AccountId)
-	Encumbrance  bool    `json:"encumbrance"`  //是否作为担保
-	TotalArea    float64 `json:"totalArea"`    //总面积
-	LivingSpace  float64 `json:"livingSpace"`  //生活空间
+	RealEstateID string `json:"realEstateId"` //房地产ID
+	Proprietor   string `json:"proprietor"`   //所有者(业主)(业主AccountId)
+	Encumbrance  bool   `json:"encumbrance"`  //是否作为担保
+	State        string `json:"adState"`      //广告位状态
+	Link         string `json:"adLink"`       //生活空间
+	ContentImg   []byte `json:"contentImg"`   //广告内容图
 }
 
 //销售要约

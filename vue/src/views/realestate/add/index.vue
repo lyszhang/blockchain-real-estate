@@ -15,11 +15,15 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="总空间 ㎡" prop="totalArea">
-        <el-input-number v-model="ruleForm.totalArea" :precision="2" :step="0.1" :min="0" />
+      <el-form-item label="状态" prop="adState">
+        <el-select v-model="ruleForm.adState" placeholder="请选择状态">
+          <el-option label="使用中" value="使用中" />
+          <el-option label="空白" value="空白" />
+          <el-option label="维护中" value="维护中" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="居住空间 ㎡" prop="livingSpace">
-        <el-input-number v-model="ruleForm.livingSpace" :precision="2" :step="0.1" :min="0" />
+      <el-form-item label="广告位链接" prop="adLink">
+        <el-input style="width:200px" v-model="ruleForm.adLink" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
@@ -38,27 +42,23 @@ export default {
   name: 'AddRealeState',
   data() {
     var checkArea = (rule, value, callback) => {
-      if (value <= 0) {
-        callback(new Error('必须大于0'))
-      } else {
-        callback()
-      }
+      callback()
     }
     return {
       ruleForm: {
         proprietor: '',
-        totalArea: 0,
-        livingSpace: 0
+        adState: '',
+        adLink: ''
       },
       accountList: [],
       rules: {
         proprietor: [
           { required: true, message: '请选择业主', trigger: 'change' }
         ],
-        totalArea: [
+        adState: [
           { validator: checkArea, trigger: 'blur' }
         ],
-        livingSpace: [
+        adLink: [
           { validator: checkArea, trigger: 'blur' }
         ]
       },
@@ -93,8 +93,8 @@ export default {
             createRealEstate({
               accountId: this.accountId,
               proprietor: this.ruleForm.proprietor,
-              totalArea: this.ruleForm.totalArea,
-              livingSpace: this.ruleForm.livingSpace
+              adState: this.ruleForm.adState,
+              adLink: this.ruleForm.adLink
             }).then(response => {
               this.loading = false
               if (response !== null) {

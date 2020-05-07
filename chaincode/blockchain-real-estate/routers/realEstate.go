@@ -13,7 +13,6 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"github.com/togettoyou/blockchain-real-estate/chaincode/blockchain-real-estate/lib"
 	"github.com/togettoyou/blockchain-real-estate/chaincode/blockchain-real-estate/utils"
-	"strconv"
 	"time"
 )
 
@@ -25,27 +24,15 @@ func CreateRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 	}
 	accountId := args[0] //accountId用于验证是否为管理员
 	proprietor := args[1]
-	totalArea := args[2]
-	livingSpace := args[3]
-	if accountId == "" || proprietor == "" || totalArea == "" || livingSpace == "" {
+	adState := args[2]
+	adLink := args[3]
+	if accountId == "" || proprietor == "" || adState == "" || adLink == "" {
 		return shim.Error("参数存在空值")
 	}
 	if accountId == proprietor {
 		return shim.Error("操作人应为管理员且与所有人不能相同")
 	}
-	// 参数数据格式转换
-	var formattedTotalArea float64
-	if val, err := strconv.ParseFloat(totalArea, 64); err != nil {
-		return shim.Error(fmt.Sprintf("totalArea参数格式转换出错: %s", err))
-	} else {
-		formattedTotalArea = val
-	}
-	var formattedLivingSpace float64
-	if val, err := strconv.ParseFloat(livingSpace, 64); err != nil {
-		return shim.Error(fmt.Sprintf("livingSpace参数格式转换出错: %s", err))
-	} else {
-		formattedLivingSpace = val
-	}
+
 	//判断是否管理员操作
 	resultsAccount, err := utils.GetStateByPartialCompositeKeys(stub, lib.AccountKey, []string{accountId})
 	if err != nil || len(resultsAccount) != 1 {
@@ -67,8 +54,8 @@ func CreateRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 		RealEstateID: fmt.Sprintf("%d", time.Now().Local().UnixNano()),
 		Proprietor:   proprietor,
 		Encumbrance:  false,
-		TotalArea:    formattedTotalArea,
-		LivingSpace:  formattedLivingSpace,
+		State:        adState,
+		Link:         adLink,
 	}
 	// 写入账本
 	if err := utils.WriteLedger(realEstate, stub, lib.RealEstateKey, []string{realEstate.Proprietor, realEstate.RealEstateID}); err != nil {
@@ -76,6 +63,44 @@ func CreateRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 	}
 	//将成功创建的信息返回
 	realEstateByte, err := json.Marshal(realEstate)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("序列化成功创建的信息出错: %s", err))
+	}
+	// 成功返回
+	return shim.Success(realEstateByte)
+}
+
+//在广告位上发布广告
+func PublishOnRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	// 验证参数
+	if len(args) != 3 {
+		return shim.Error("参数个数不满足")
+	}
+	accountId := args[0]    //accountId用于验证是否为所有者
+	realEstateId := args[1] //广告位Id
+	imgContent := args[2]
+	if accountId == "" || realEstateId == "" || imgContent == "" {
+		return shim.Error("参数存在空值")
+	}
+	//判断objectOfSale是否属于seller
+	resultsRealEstate, err := utils.GetStateByPartialCompositeKeys2(stub, lib.RealEstateKey, []string{accountId, realEstateId})
+	if err != nil || len(resultsRealEstate) != 1 {
+		return shim.Error(fmt.Sprintf("验证%s属于%s失败: %s", realEstateId, accountId, err))
+	}
+	var realEstateReader lib.RealEstate
+	if err = json.Unmarshal(resultsRealEstate[0], &realEstateReader); err != nil {
+		return shim.Error(fmt.Sprintf("CreateSelling-反序列化出错: %s", err))
+	}
+
+	realEstateWriter := realEstateReader
+	realEstateWriter.ContentImg = []byte(imgContent)
+
+	// 写入账本
+	if err := utils.WriteLedger(realEstateWriter, stub, lib.RealEstateKey, []string{accountId, realEstateId}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	//将成功创建的信息返回
+	realEstateByte, err := json.Marshal(realEstateWriter)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("序列化成功创建的信息出错: %s", err))
 	}

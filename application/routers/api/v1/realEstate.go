@@ -14,21 +14,26 @@ import (
 	bc "github.com/togettoyou/blockchain-real-estate/application/blockchain"
 	"github.com/togettoyou/blockchain-real-estate/application/pkg/app"
 	"net/http"
-	"strconv"
 )
 
 type RealEstateRequestBody struct {
-	AccountId   string  `json:"accountId"`   //操作人ID
-	Proprietor  string  `json:"proprietor"`  //所有者(业主)(业主AccountId)
-	TotalArea   float64 `json:"totalArea"`   //总面积
-	LivingSpace float64 `json:"livingSpace"` //生活空间
+	AccountId  string `json:"accountId"`  //操作人ID
+	Proprietor string `json:"proprietor"` //所有者(业主)(业主AccountId)
+	State      string `json:"adState"`    //总面积
+	Link       string `json:"adLink"`     //生活空间
 }
 
 type RealEstateQueryRequestBody struct {
 	Proprietor string `json:"proprietor"` //所有者(业主)(业主AccountId)
 }
 
-// @Summary 新建房地产(管理员)
+type PublishAdRequestBody struct {
+	AccountId    string `json:"accountId"`    //操作人ID
+	ObjectOfSale string `json:"objectOfSale"` //销售对象(正在出售的广告RealEstateID)
+	ImgContent   []byte `json:"imgContent"`   //广告内容
+}
+
+// @Summary 新建广告位(管理员)
 // @Param realEstate body RealEstateRequestBody true "realEstate"
 // @Produce  json
 // @Success 200 {object} app.Response
@@ -42,15 +47,15 @@ func CreateRealEstate(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, "失败", fmt.Sprintf("参数出错%s", err.Error()))
 		return
 	}
-	if body.TotalArea <= 0 || body.LivingSpace <= 0 || body.LivingSpace > body.TotalArea {
-		appG.Response(http.StatusBadRequest, "失败", "TotalArea总面积和LivingSpace生活空间必须大于0，且生活空间小于等于总面积")
+	if body.State == "" {
+		appG.Response(http.StatusBadRequest, "失败", "state 不能为空")
 		return
 	}
 	var bodyBytes [][]byte
 	bodyBytes = append(bodyBytes, []byte(body.AccountId))
 	bodyBytes = append(bodyBytes, []byte(body.Proprietor))
-	bodyBytes = append(bodyBytes, []byte(strconv.FormatFloat(body.TotalArea, 'E', -1, 64)))
-	bodyBytes = append(bodyBytes, []byte(strconv.FormatFloat(body.LivingSpace, 'E', -1, 64)))
+	bodyBytes = append(bodyBytes, []byte(body.State))
+	bodyBytes = append(bodyBytes, []byte(body.Link))
 	//调用智能合约
 	resp, err := bc.ChannelExecute("createRealEstate", bodyBytes)
 	if err != nil {
@@ -85,6 +90,41 @@ func QueryRealEstateList(c *gin.Context) {
 	}
 	//调用智能合约
 	resp, err := bc.ChannelQuery("queryRealEstateList", bodyBytes)
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+	// 反序列化json
+	var data []map[string]interface{}
+	if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+	appG.Response(http.StatusOK, "成功", data)
+}
+
+// @Summary 在指定广告位上发布广告
+// @Param realEstateQuery body RealEstateQueryRequestBody true "realEstateQuery"
+// @Produce  json
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /api/v1/queryRealEstateList [post]
+func PublishOnRealEstate(c *gin.Context) {
+	appG := app.Gin{C: c}
+	body := new(PublishAdRequestBody)
+	//解析Body参数
+	if err := c.ShouldBind(body); err != nil {
+		appG.Response(http.StatusBadRequest, "失败", fmt.Sprintf("参数出错%s", err.Error()))
+		return
+	}
+	var bodyBytes [][]byte
+	if body.AccountId != "" && body.ObjectOfSale != "" {
+		bodyBytes = append(bodyBytes, []byte(body.AccountId))
+		bodyBytes = append(bodyBytes, []byte(body.ObjectOfSale))
+		bodyBytes = append(bodyBytes, body.ImgContent)
+	}
+	//调用智能合约
+	resp, err := bc.ChannelQuery("publishOnRealEstate", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
