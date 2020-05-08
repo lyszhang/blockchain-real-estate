@@ -66,15 +66,10 @@
       </div>
     </el-dialog>
     <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreatePublishing" :close-on-click-modal="false" @close="resetForm('publishForm')">
-      <el-form ref="publishForm" :model="publishForm" label-width="100px">
-        <el-form-item label="图片" prop="picImg">
-          <el-upload v-model="publishForm.picImg" type="file" accept="image/gif,image/jpeg,image/jpg,image/png" />
-        </el-form-item>
+      <el-form action="http://localhost:8000/api/v1/upload" enctype="multipart/form-data" method="POST">
+        <input type="file" name="file" id="pic" accept="*" />
+        <button type="submit">提交</button>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="createPublishing('publishForm')">立即发布</el-button>
-        <el-button @click="dialogCreatePublishing = false">取 消</el-button>
-      </div>
     </el-dialog>
     <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreateDonating" :close-on-click-modal="false" @close="resetForm('DonatingForm')">
       <el-form ref="DonatingForm" :model="DonatingForm" :rules="rulesDonating" label-width="100px">

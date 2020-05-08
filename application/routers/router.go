@@ -40,9 +40,11 @@ func InitRouter() *gin.Engine {
 		apiV1.POST("/queryDonatingList", v1.QueryDonatingList)
 		apiV1.POST("/queryDonatingListByGrantee", v1.QueryDonatingListByGrantee)
 		apiV1.POST("/updateDonating", v1.UpdateDonating)
+		apiV1.POST("/upload", v1.Upload)
 	}
 	// 静态文件路由
 	r.StaticFS("/web", http.Dir("./dist/"))
+	r.StaticFS("/file", http.Dir("./public"))
 	return r
 }
 
