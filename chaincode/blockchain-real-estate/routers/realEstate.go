@@ -56,6 +56,7 @@ func CreateRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 		Encumbrance:  false,
 		State:        adState,
 		Link:         adLink,
+		ContentImg:   "",
 	}
 	// 写入账本
 	if err := utils.WriteLedger(realEstate, stub, lib.RealEstateKey, []string{realEstate.Proprietor, realEstate.RealEstateID}); err != nil {
@@ -93,7 +94,7 @@ func PublishOnRealEstate(stub shim.ChaincodeStubInterface, args []string) pb.Res
 	}
 
 	realEstateWriter := realEstateReader
-	realEstateWriter.ContentImg = []byte(imgContent)
+	realEstateWriter.ContentImg = imgContent
 
 	// 写入账本
 	if err := utils.WriteLedger(realEstateWriter, stub, lib.RealEstateKey, []string{accountId, realEstateId}); err != nil {

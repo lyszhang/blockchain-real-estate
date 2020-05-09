@@ -160,6 +160,11 @@ export const asyncRoutes = [
     }]
   },
 
+  {
+    path: '/blog/:id',
+    name: 'blog',
+    component: () => import('@/views/adpage/home')
+  },
   // 404 page must be placed at the end !!!
   {
     path: '*',

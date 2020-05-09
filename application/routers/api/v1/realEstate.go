@@ -32,7 +32,6 @@ type RealEstateQueryRequestBody struct {
 type PublishAdRequestBody struct {
 	AccountId    string `json:"accountId"`    //操作人ID
 	ObjectOfSale string `json:"objectOfSale"` //销售对象(正在出售的广告RealEstateID)
-	ImgContent   []byte `json:"imgContent"`   //广告内容
 }
 
 // @Summary 新建广告位(管理员)
@@ -96,6 +95,8 @@ func QueryRealEstateList(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
+
+	fmt.Println("resp", string(resp.Payload))
 	// 反序列化json
 	var data []map[string]interface{}
 	if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
@@ -123,7 +124,6 @@ func PublishOnRealEstate(c *gin.Context) {
 	if body.AccountId != "" && body.ObjectOfSale != "" {
 		bodyBytes = append(bodyBytes, []byte(body.AccountId))
 		bodyBytes = append(bodyBytes, []byte(body.ObjectOfSale))
-		bodyBytes = append(bodyBytes, body.ImgContent)
 	}
 	//调用智能合约
 	resp, err := bc.ChannelQuery("publishOnRealEstate", bodyBytes)
@@ -157,6 +157,32 @@ func Upload(c *gin.Context) {
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 	}
-	filepath := "http://localhost:8080/file/" + filename
-	c.JSON(http.StatusOK, gin.H{"filepath": filepath})
+	filepath := "http://localhost:8000/file/" + filename
+	accountId := c.Request.FormValue("accountId")
+	objectOfSale := c.Request.FormValue("objectOfSale")
+	fmt.Println("accountID", accountId)
+	fmt.Println("objectOfSale", objectOfSale)
+	fmt.Println("filepath", filepath)
+
+	//处理参数
+	var bodyBytes [][]byte
+	if accountId != "" && objectOfSale != "" {
+		bodyBytes = append(bodyBytes, []byte(accountId))
+		bodyBytes = append(bodyBytes, []byte(objectOfSale))
+		bodyBytes = append(bodyBytes, []byte(filepath))
+	}
+	//调用智能合约
+	resp, err := bc.ChannelExecute("publishOnRealEstate", bodyBytes)
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+
+	// 反序列化json
+	var data []map[string]interface{}
+	if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+	appG.Response(http.StatusOK, "成功", data)
 }

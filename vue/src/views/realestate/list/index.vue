@@ -39,6 +39,10 @@
             <el-tag type="danger">广告位链接: </el-tag>
             <span>{{ val.adLink }} </span>
           </div>
+          <div class="item">
+            <el-tag type="danger">广告内容链接: </el-tag>
+            <el-link :href="getAdHref(val.contentImg)">{{ val.contentImg }} </el-link>
+          </div>
 
           <div v-if="!val.encumbrance&&roles[0] !== 'admin'">
             <el-button type="text" @click="openDialog(val)">出租</el-button>
@@ -66,9 +70,20 @@
       </div>
     </el-dialog>
     <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreatePublishing" :close-on-click-modal="false" @close="resetForm('publishForm')">
-      <el-form action="http://localhost:8000/api/v1/upload" enctype="multipart/form-data" method="POST">
-        <input type="file" name="file" id="pic" accept="*" />
-        <button type="submit">提交</button>
+      <el-form ref="publishForm" :model="publishForm" label-width="100px">
+        <el-form-item label="图片" prop="picImg">
+          <el-upload
+            :action="uploadActionUrl"
+            accept="image/jpeg,image/gif,image/png"
+            :data="getfileData()"
+            multiple
+            :limit="3"
+            :file-list="files"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">请上传图片格式文件</div>
+          </el-upload>
+        </el-form-item>
       </el-form>
     </el-dialog>
     <el-dialog v-loading="loadingDialog" :visible.sync="dialogCreateDonating" :close-on-click-modal="false" @close="resetForm('DonatingForm')">
@@ -144,6 +159,11 @@ export default {
         picImg: __filename
       },
       accountList: [],
+      uploadActionUrl: 'http://localhost:8000/api/v1/upload',
+      uploadData: {
+        accountId: this.accountId,
+        objectOfSale: ''
+      },
       valItem: {}
     }
   },
@@ -155,6 +175,7 @@ export default {
       'balance'
     ])
   },
+
   created() {
     if (this.roles[0] === 'admin') {
       queryRealEstateList().then(response => {
@@ -177,6 +198,9 @@ export default {
     }
   },
   methods: {
+    getAdHref: function(val) {
+      return val
+    },
     openDialog(item) {
       this.dialogCreateSelling = true
       this.valItem = item
@@ -244,6 +268,11 @@ export default {
           return false
         }
       })
+    },
+    getfileData() {
+      this.uploadData.accountId = this.accountId
+      this.uploadData.objectOfSale = this.valItem.realEstateId
+      return this.uploadData
     },
     createPublishing(formName) {
       this.$refs[formName].validate((valid) => {
@@ -353,7 +382,7 @@ export default {
 <style>
   .container{
     width: 100%;
-    text-align: center;
+    text-align: left;
     min-height: 100%;
     overflow: hidden;
   }
@@ -376,8 +405,8 @@ export default {
   }
 
   .realEstate-card {
-    width: 280px;
-    height: 340px;
+    width: 380px;
+    height: 440px;
     margin: 18px;
   }
 </style>

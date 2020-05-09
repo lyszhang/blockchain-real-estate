@@ -22,7 +22,7 @@ type RealEstate struct {
 	Encumbrance  bool   `json:"encumbrance"`  //是否作为担保
 	State        string `json:"adState"`      //广告位状态
 	Link         string `json:"adLink"`       //生活空间
-	ContentImg   []byte `json:"contentImg"`   //广告内容图
+	ContentImg   string `json:"contentImg"`   //广告内容图链接
 }
 
 //销售要约
