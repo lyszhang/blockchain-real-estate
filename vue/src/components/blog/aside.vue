@@ -43,7 +43,7 @@
     <div class="demo-image__placeholder">
       <el-card class="box-card">
         <div class="block">
-          <el-image :src="src" :preview-src-list="srcList" style="width: 300px; height: 250px" >
+          <el-image :src="contentImg" :preview-src-list="srcList" style="width: 300px; height: 250px" >
             <div slot="placeholder" class="image-slot">
               加载中<span class="dot">...</span>
             </div>
@@ -62,7 +62,7 @@ export default {
   props: {
     contentImg: {
       type: String,
-      default: () => ''
+      default: ''
     }
   },
   data() {
