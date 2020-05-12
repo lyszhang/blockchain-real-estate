@@ -157,7 +157,7 @@ func Upload(c *gin.Context) {
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 	}
-	filepath := "http://localhost:8000/file/" + filename
+	filepath := "http://161.117.225.66:8000/file/" + filename
 	accountId := c.Request.FormValue("accountId")
 	objectOfSale := c.Request.FormValue("objectOfSale")
 	fmt.Println("accountID", accountId)

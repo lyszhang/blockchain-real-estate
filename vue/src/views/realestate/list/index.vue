@@ -37,7 +37,7 @@
           </div>
           <div class="item">
             <el-tag type="danger">广告位链接: </el-tag>
-            <span>{{ val.adLink }} </span>
+            <el-link :href="getAdHref(val.adLink)">{{ val.adLink }} </el-link>
           </div>
           <div class="item">
             <el-tag type="danger">广告内容链接: </el-tag>
@@ -159,7 +159,7 @@ export default {
         picImg: __filename
       },
       accountList: [],
-      uploadActionUrl: 'http://localhost:8000/api/v1/upload',
+      uploadActionUrl: 'http://161.117.225.66:8000/api/v1/upload',
       uploadData: {
         accountId: this.accountId,
         objectOfSale: ''

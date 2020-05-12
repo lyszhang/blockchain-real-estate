@@ -23,7 +23,10 @@
         </el-select>
       </el-form-item>
       <el-form-item label="广告位链接" prop="adLink">
-        <el-input style="width:200px" v-model="ruleForm.adLink" />
+        <el-select v-model="ruleForm.adLink" placeholder="测试默认链接">
+          <el-option label="默认测试blog网站链接" value="http://161.117.225.66:8000/web/#/blog/4b227777d4dd" />
+          <el-option label="无" value="null" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
